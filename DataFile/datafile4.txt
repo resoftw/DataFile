@@ -1,0 +1,27 @@
+data
+{
+    name = World
+    age = 50
+    height = 175.500000
+    code = C++, 17, "A,b,c"
+    projects
+    {
+        Number = 100
+        Project 1 = Hello WOrld
+        Project 2 = "Make, Run"
+    }
+    books
+    {
+        Book 3 = 6334
+        Count = 10
+        Book 1 = 41
+        Book 2 = 18467
+        Book 4 = 26500
+        Book 5 = 19169
+        Book 6 = 15724
+        Book 7 = 11478
+        Book 8 = 29358
+        Book 9 = 26962
+        Book 10 = 24464
+    }
+}
