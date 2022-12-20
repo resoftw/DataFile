@@ -76,7 +76,7 @@ public:
             for (auto const& property : n.m_vecObjects)
             {
                 if (property.second.m_vecObjects.empty()) {
-                    file << indent(sIndent, nIndentCount) << property.first << " = ";
+                    file << indent(sIndent, nIndentCount) << property.first << (property.second.m_bIsComment?"":" = ");
                     size_t nItems = property.second.GetValueCount();
                     for (size_t i = 0; i < property.second.GetValueCount(); i++) 
                     {
@@ -137,64 +137,73 @@ public:
                 trim(line);
                 if (!line.empty())
                 {
-                    size_t x = line.find_first_of('=');
-                    if (x != std::string::npos) 
+                    if (line[0] == '#')
                     {
-                        sPropName = line.substr(0, x);
-                        trim(sPropName);
-                        sPropValue = line.substr(x + 1, line.size());
-                        trim(sPropValue);
-
-                        bool bInQuotes = false;
-                        std::string sToken;
-                        size_t nTokenCount = 0;
-                        for (const auto c : sPropValue)
-                        {
-                            if (c == '\"') 
-                            {
-                                bInQuotes = !bInQuotes;
-                            }
-                            else
-                            {
-                                if (bInQuotes) {
-                                    sToken.append(1, c);
-                                }
-                                else 
-                                {
-                                    if (c == sListSep) 
-                                    {
-                                        trim(sToken);
-                                        stkPath.top().get()[sPropName].SetString(sToken, nTokenCount);
-                                        sToken.clear();
-                                        nTokenCount++;
-                                    }
-                                    else 
-                                    {
-                                        sToken.append(1, c);
-                                    }
-                                }
-                            }
-                        }
-                        if (!sToken.empty()) {
-                            trim(sToken);
-                            stkPath.top().get()[sPropName].SetString(sToken, nTokenCount);
-                        }
+                        datafile comment;
+                        comment.m_bIsComment = true;
+                        stkPath.top().get().m_vecObjects.push_back({ line,comment });
                     }
                     else
                     {
-                        if (line[0] == '{')
+                        size_t x = line.find_first_of('=');
+                        if (x != std::string::npos)
                         {
-                            stkPath.push(stkPath.top().get()[sPropName]);
-                        }
-                        else 
-                        {
-                            if (line[0] == '}')
+                            sPropName = line.substr(0, x);
+                            trim(sPropName);
+                            sPropValue = line.substr(x + 1, line.size());
+                            trim(sPropValue);
+
+                            bool bInQuotes = false;
+                            std::string sToken;
+                            size_t nTokenCount = 0;
+                            for (const auto c : sPropValue)
                             {
-                                stkPath.pop();
+                                if (c == '\"')
+                                {
+                                    bInQuotes = !bInQuotes;
+                                }
+                                else
+                                {
+                                    if (bInQuotes) {
+                                        sToken.append(1, c);
+                                    }
+                                    else
+                                    {
+                                        if (c == sListSep)
+                                        {
+                                            trim(sToken);
+                                            stkPath.top().get()[sPropName].SetString(sToken, nTokenCount);
+                                            sToken.clear();
+                                            nTokenCount++;
+                                        }
+                                        else
+                                        {
+                                            sToken.append(1, c);
+                                        }
+                                    }
+                                }
+                            }
+                            if (!sToken.empty()) {
+                                trim(sToken);
+                                stkPath.top().get()[sPropName].SetString(sToken, nTokenCount);
+                            }
+                        }
+                        else
+                        {
+                            if (line[0] == '{')
+                            {
+                                stkPath.push(stkPath.top().get()[sPropName]);
                             }
                             else
                             {
-                                sPropName = line;
+                                if (line[0] == '}')
+                                {
+                                    stkPath.pop();
+                                }
+                                else
+                                {
+                                    sPropName = line;
+                                }
                             }
                         }
                     }
@@ -212,6 +221,8 @@ private:
     std::vector<std::string> m_vContent;
     std::vector<std::pair<std::string, datafile>>m_vecObjects;
     std::unordered_map<std::string, size_t> m_mapObjects;
+protected:
+    bool m_bIsComment = false;
 };
 
 
